@@ -1,0 +1,12 @@
+// OpenGL 3.3 버전을 사용한다
+#version 330 core
+
+// 입력 값을 선언한다
+// OpenGL에서 생성한 버텍스 버퍼와 맞춰준다
+// Input vertex data, different for all executions of this shader.
+layout(location = 0) in vec3 vertexPosition_modelspace;
+
+void main(){
+    gl_Position.xyz = vertexPosition_modelspace;
+    gl_Position.w = 1.0;
+}
