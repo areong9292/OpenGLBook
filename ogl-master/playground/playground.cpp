@@ -15,6 +15,10 @@ GLFWwindow* window;
 // GLM 포함
 // 수학 기능을 위한 헤더
 #include <glm/glm.hpp>
+
+// 평행이동을 위한 헤더
+#include <glm/gtx/transform.hpp>
+
 using namespace glm;
 
 // 쉐이더 사용을 위한 헤더 추가
@@ -108,6 +112,27 @@ int main(void)
 	// 쉐이더 생성 후 컴파일
 	GLuint programID = LoadShaders("shaders/SimpleVertexShader.vertexshader", "shaders/SimpleFragmentShader.fragmentshader");
 
+	// 초기화 때만 MVP 행렬에 참조를 가져온다
+	// 쉐이더의 mat4 MVP 변수에 접근하는 것
+	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+
+	// 투영 행렬, 45도 시야각, 4:3비율, 시야 범위 0.1 ~ 100 유닛
+	mat4 Projection = perspective(radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+
+	// 카메라(뷰) 행렬
+	mat4 View = lookAt(
+		vec3(4, 3, 3), // 카메라는 월드 좌표 (4,3,3) 에 있다.
+		vec3(0, 0, 0), // 그리고 카메라가 원점을 본다
+		vec3(0, 1, 0)  // 머리가 위쪽이다 (0,-1,0 으로 해보면, 뒤집어 볼것이다)
+	);
+
+	// 모델 매트릭스 : 단위 매트릭스 (모델은 원점에 배치된다)
+	mat4 Model = mat4(1.0f);
+
+	// 우리의 모델뷰프로젝션 : 3개 매트릭스들을 곱한다
+	// 기억하세요, 행렬곱은 계산은 반대순서로 이루어집니다
+	mat4 MVP = Projection * View * Model;
+
 	// 반복문 돌면서 렌더링 진행
 	do{
 		// 화면 클리어
@@ -116,6 +141,9 @@ int main(void)
 
 		// 쉐이더 사용
 		glUseProgram(programID);
+
+		// 현재 바인딩된 쉐이더 mat4 MVP에게 변환한 행렬을 보낸다
+		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
 		// 버퍼의 첫번째 속성값 : 버텍스
 		glEnableVertexAttribArray(0);
